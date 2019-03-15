@@ -1,14 +1,18 @@
 package abi32_0_0.expo.modules.medialibrary;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLConnection;
 
 import abi32_0_0.expo.core.Promise;
 
@@ -60,6 +64,12 @@ class CreateAsset extends AsyncTask<Void, Void, Void> {
                 mPromise.reject(ERROR_UNABLE_TO_SAVE, "Could not add image to gallery.");
                 return;
               }
+              String mimeType = URLConnection.guessContentTypeFromName(path);
+
+              if (mimeType != null && mimeType.startsWith("video")) {
+                updateVideoAttributes(path, uri);
+              }
+
               final String selection = MediaStore.Images.Media.DATA + "=?";
               final String[] args = {path};
               queryAssetInfo(mContext, selection, args, false, mPromise);
@@ -74,4 +84,21 @@ class CreateAsset extends AsyncTask<Void, Void, Void> {
     return null;
   }
 
+  private void updateVideoAttributes(String path, Uri uri) {
+    ContentValues contentValues = new ContentValues();
+    MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+
+    Log.i("MEDIALIB", "DUPA: " + uri);
+
+    metadataRetriever.setDataSource(mContext, uri);
+    String width = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+    String height = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+    String duration = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+
+    contentValues.put(MediaStore.Video.VideoColumns.WIDTH, width);
+    contentValues.put(MediaStore.Video.VideoColumns.HEIGHT, height);
+    contentValues.put(MediaStore.Video.VideoColumns.DURATION, duration);
+
+    mContext.getContentResolver().update(MediaLibraryConstants.EXTERNAL_CONTENT, contentValues, MediaStore.MediaColumns.DATA + "=?", new String[]{path});
+  }
 }
