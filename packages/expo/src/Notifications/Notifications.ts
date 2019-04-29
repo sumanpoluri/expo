@@ -453,10 +453,7 @@ export default {
       repeat?: boolean;
     } = {}
   ): Promise<string> {
-    if (!ExponentNotifications.scheduleNotificationWithCalendar) {
-      return;
-    }
-    return ExponentNotifications.scheduleNotificationWithCalendar(nativeNotification, options);
+    return ExponentNotifications.scheduleNotificationWithCalendar(notification, options);
   },
 
   async schedulNotificationWithTimerAsync(  notification: LocalNotification,
@@ -465,9 +462,6 @@ export default {
       repeat?: boolean;
     } = {}
   ): Promise<string> {
-    if (!ExponentNotifications.schedulNotificationWithTimer) {
-      return;
-    }
-    return ExponentNotifications.scheduleNotificationWithTimer(nativeNotification, options);
+    return ExponentNotifications.scheduleNotificationWithTimer(notification, options);
   },
 };
